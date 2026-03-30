@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Posts</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;1,300;1,600&family=Space+Mono:wght@400;700&family=Libre+Baskerville:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --surface2: #1e1e24;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0eee8;
+    --muted: #7a7a8a;
+    --accent: #c9a96e;
+    --accent2: #7c6fe0;
+    --radius: 12px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--text);
+  }
+
+  header span {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-left: auto;
+  }
+
+  .app {
+    display: flex;
+    flex: 1;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  /* PAINEL ESQUERDO */
+  .panel {
+    width: 320px;
+    min-width: 320px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .section-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* TEXTO */
+  textarea, input[type=text] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 12px;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus, input[type=text]:focus {
+    border-color: var(--accent);
+  }
+  textarea { height: 100px; line-height: 1.6; }
+
+  input[type=text] { margin-top: 8px; }
+
+  /* ESTILOS */
+  .style-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .style-btn {
+    height: 64px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .style-btn.active { border-color: var(--accent); }
+
+  .style-btn span {
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  }
+
+  .s-dark    { background: linear-gradient(135deg, #1a1a2e, #16213e); color: #a78bfa; }
+  .s-warm    { background: linear-gradient(135deg, #3d1c1c, #6b3a2a); color: #f9c784; }
+  .s-minimal { background: #f5f0e8; color: #3a3028; }
+  .s-gold    { background: linear-gradient(135deg, #1c1a0e, #3a2f08); color: #c9a96e; }
+  .s-ocean   { background: linear-gradient(135deg, #0a1628, #0d3060); color: #7dd3fc; }
+  .s-forest  { background: linear-gradient(135deg, #0f1e0f, #1a3a1a); color: #86efac; }
+
+  /* FONTES */
+  .font-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .font-btn {
+    padding: 10px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+  .font-btn:hover { border-color: rgba(255,255,255,0.2); }
+  .font-btn.active { border-color: var(--accent); background: rgba(201,169,110,0.08); }
+  .font-btn .font-name { font-size: 11px; color: var(--muted); }
+  .font-btn .font-preview { font-size: 16px; }
+
+  /* TAMANHO */
+  .size-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  input[type=range] {
+    flex: 1;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .size-val {
+    font-size: 13px;
+    color: var(--muted);
+    min-width: 28px;
+    text-align: right;
+  }
+
+  /* BOTÃO DOWNLOAD */
+  .btn-download {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #0d0d0f;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: auto;
+  }
+  .btn-download:hover { opacity: 0.88; }
+  .btn-download:active { transform: scale(0.98); }
+
+  /* ÁREA DE PREVIEW */
+  .preview-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    padding: 40px;
+    position: relative;
+  }
+
+  .preview-wrap {
+    position: relative;
+  }
+
+  .post-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 14px;
+  }
+
+  /* O POST EM SI */
+  #post-card {
+    width: 400px;
+    height: 400px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 40px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+  }
+
+  .post-deco1, .post-deco2 {
+    position: absolute;
+    border-radius: 50%;
+    transition: all 0.4s;
+  }
+
+  .post-quote-mark {
+    font-size: 80px;
+    line-height: 0.6;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+    align-self: flex-start;
+  }
+
+  #post-text {
+    text-align: center;
+    line-height: 1.65;
+    margin-bottom: 20px;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+    word-break: break-word;
+  }
+
+  .post-divider {
+    width: 36px;
+    height: 2px;
+    border-radius: 2px;
+    margin: 0 auto 14px;
+    transition: all 0.3s;
+  }
+
+  #post-author {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 16px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ESTILOS DO POST */
+  .theme-dark {
+    background: #1a1a2e;
+  }
+  .theme-dark .post-deco1 {
+    width: 220px; height: 220px;
+    background: #7c3aed;
+    opacity: 0.12;
+    top: -60px; right: -60px;
+  }
+  .theme-dark .post-deco2 {
+    width: 140px; height: 140px;
+    background: #4f46e5;
+    opacity: 0.1;
+    bottom: -40px; left: -30px;
+  }
+  .theme-dark .post-quote-mark { color: #a78bfa; }
+  .theme-dark #post-text { color: #e2e0f9; }
+  .theme-dark .post-divider { background: #a78bfa; opacity: 0.4; }
+  .theme-dark #post-author { color: #a78bfa; }
+
+  .theme-warm {
+    background: linear-gradient(145deg, #3d1c1c 0%, #6b3a2a 100%);
+  }
+  .theme-warm .post-deco1 {
+    width: 200px; height: 200px;
+    background: #c2410c;
+    opacity: 0.15;
+    top: -50px; left: -50px;
+  }
+  .theme-warm .post-deco2 {
+    width: 110px; height: 110px;
+    background: #ea580c;
+    opacity: 0.12;
+    bottom: -30px; right: -20px;
+  }
+  .theme-warm .post-quote-mark { color: #f9a86d; }
+  .theme-warm #post-text { color: #fdebd0; }
+  .theme-warm .post-divider { background: #f9a86d; opacity: 0.5; }
+  .theme-warm #post-author { color: #f9a86d; }
+
+  .theme-minimal {
+    background: #f5f0e8;
+  }
+  .theme-minimal .post-deco1 { display: none; }
+  .theme-minimal .post-deco2 { display: none; }
+  .theme-minimal .post-quote-mark { color: #b5a48a; }
+  .theme-minimal #post-text { color: #3a3028; }
+  .theme-minimal .post-divider { background: #b5a48a; opacity: 0.6; }
+  .theme-minimal #post-author { color: #8a7a65; }
+
+  .theme-gold {
+    background: linear-gradient(145deg, #1c1a0e 0%, #3a2f08 100%);
+  }
+  .theme-gold .post-deco1 {
+    width: 250px; height: 250px;
+    background: #c9a96e;
+    opacity: 0.08;
+    top: -80px; right: -80px;
+  }
+  .theme-gold .post-deco2 {
+    width: 120px; height: 120px;
+    background: #a07840;
+    opacity: 0.1;
+    bottom: -30px; left: -20px;
+  }
+  .theme-gold .post-quote-mark { color: #c9a96e; }
+  .theme-gold #post-text { color: #f0e6cc; }
+  .theme-gold .post-divider { background: #c9a96e; opacity: 0.5; }
+  .theme-gold #post-author { color: #c9a96e; }
+
+  .theme-ocean {
+    background: linear-gradient(145deg, #0a1628 0%, #0d3060 100%);
+  }
+  .theme-ocean .post-deco1 {
+    width: 200px; height: 200px;
+    background: #0369a1;
+    opacity: 0.15;
+    top: -50px; left: -50px;
+  }
+  .theme-ocean .post-deco2 {
+    width: 130px; height: 130px;
+    background: #0ea5e9;
+    opacity: 0.08;
+    bottom: -40px; right: -30px;
+  }
+  .theme-ocean .post-quote-mark { color: #7dd3fc; }
+  .theme-ocean #post-text { color: #e0f2fe; }
+  .theme-ocean .post-divider { background: #7dd3fc; opacity: 0.4; }
+  .theme-ocean #post-author { color: #7dd3fc; }
+
+  .theme-forest {
+    background: linear-gradient(145deg, #0f1e0f 0%, #1a3a1a 100%);
+  }
+  .theme-forest .post-deco1 {
+    width: 200px; height: 200px;
+    background: #166534;
+    opacity: 0.2;
+    top: -60px; right: -40px;
+  }
+  .theme-forest .post-deco2 {
+    width: 120px; height: 120px;
+    background: #15803d;
+    opacity: 0.12;
+    bottom: -30px; left: -20px;
+  }
+  .theme-forest .post-quote-mark { color: #86efac; }
+  .theme-forest #post-text { color: #dcfce7; }
+  .theme-forest .post-divider { background: #86efac; opacity: 0.4; }
+  .theme-forest #post-author { color: #86efac; }
+
+  /* scrollbar */
+  .panel::-webkit-scrollbar { width: 4px; }
+  .panel::-webkit-scrollbar-track { background: transparent; }
+  .panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-dot"></div>
+  <h1>POSTCRAFT</h1>
+  <span>Gerador de Posts</span>
+</header>
+
+<div class="app">
+
+  <!-- PAINEL DE CONTROLES -->
+  <div class="panel">
+
+    <!-- TEXTO -->
+    <div>
+      <div class="section-title">Citação</div>
+      <textarea id="input-text" placeholder="Digite sua frase ou pensamento aqui...">A matemática é a linguagem com a qual Deus escreveu o universo.</textarea>
+      <input type="text" id="input-author" placeholder="Autor" value="Galileu Galilei">
+    </div>
+
+    <!-- ESTILO / FUNDO -->
+    <div>
+      <div class="section-title">Estilo & Fundo</div>
+      <div class="style-grid">
+        <div class="style-btn s-dark active" data-theme="dark" onclick="setTheme(this)"><span>Noite Roxo</span></div>
+        <div class="style-btn s-warm" data-theme="warm" onclick="setTheme(this)"><span>Terracota</span></div>
+        <div class="style-btn s-minimal" data-theme="minimal" onclick="setTheme(this)"><span>Minimalista</span></div>
+        <div class="style-btn s-gold" data-theme="gold" onclick="setTheme(this)"><span>Ouro</span></div>
+        <div class="style-btn s-ocean" data-theme="ocean" onclick="setTheme(this)"><span>Oceano</span></div>
+        <div class="style-btn s-forest" data-theme="forest" onclick="setTheme(this)"><span>Floresta</span></div>
+      </div>
+    </div>
+
+    <!-- FONTE -->
+    <div>
+      <div class="section-title">Tipografia</div>
+      <div class="font-grid">
+        <div class="font-btn active" data-font="'Playfair Display', serif" onclick="setFont(this)">
+          <span class="font-preview" style="font-family:'Playfair Display',serif; font-style:italic;">Aa</span>
+          <span class="font-name">Playfair Display</span>
+        </div>
+        <div class="font-btn" data-font="'Cormorant Garamond', serif" onclick="setFont(this)">
+          <span class="font-preview" style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:20px;">Aa</span>
+          <span class="font-name">Cormorant Garamond</span>
+        </div>
+        <div class="font-btn" data-font="'Libre Baskerville', serif" onclick="setFont(this)">
+          <span class="font-preview" style="font-family:'Libre Baskerville',serif; font-style:italic;">Aa</span>
+          <span class="font-name">Libre Baskerville</span>
+        </div>
+        <div class="font-btn" data-font="'DM Sans', sans-serif" onclick="setFont(this)">
+          <span class="font-preview" style="font-family:'DM Sans',sans-serif; font-weight:300;">Aa</span>
+          <span class="font-name">DM Sans</span>
+        </div>
+        <div class="font-btn" data-font="'Space Mono', monospace" onclick="setFont(this)">
+          <span class="font-preview" style="font-family:'Space Mono',monospace; font-size:13px;">Aa</span>
+          <span class="font-name">Space Mono</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAMANHO DA FONTE -->
+    <div>
+      <div class="section-title">Tamanho do texto</div>
+      <div class="size-row">
+        <input type="range" id="font-size" min="12" max="26" value="17" oninput="setSize(this.value)">
+        <span class="size-val" id="size-label">17px</span>
+      </div>
+    </div>
+
+    <!-- DOWNLOAD -->
+    <button class="btn-download" onclick="downloadPost()">⬇ Baixar Imagem (PNG)</button>
+
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-area">
+    <div class="preview-wrap">
+      <div class="post-label">Pré-visualização · 1080 × 1080</div>
+
+      <div id="post-card" class="theme-dark">
+        <div class="post-deco1"></div>
+        <div class="post-deco2"></div>
+        <div class="post-quote-mark">"</div>
+        <p id="post-text" style="font-family:'Playfair Display',serif; font-style:italic; font-size:17px;">
+          A matemática é a linguagem com a qual Deus escreveu o universo.
+        </p>
+        <div class="post-divider"></div>
+        <span id="post-author" style="font-family:'DM Sans',sans-serif;">Galileu Galilei</span>
+      </div>
+
+      <div class="hint">Edite os controles à esquerda e baixe como PNG para o Instagram</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const inputText   = document.getElementById('input-text');
+  const inputAuthor = document.getElementById('input-author');
+  const postText    = document.getElementById('post-text');
+  const postAuthor  = document.getElementById('post-author');
+  const postCard    = document.getElementById('post-card');
+
+  let currentFont = "'Playfair Display', serif";
+  let currentSize = 17;
+
+  inputText.addEventListener('input', () => {
+    postText.textContent = inputText.value || 'Sua frase aqui...';
+  });
+
+  inputAuthor.addEventListener('input', () => {
+    postAuthor.textContent = inputAuthor.value || 'Autor';
+  });
+
+  function setTheme(el) {
+    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    const themes = ['dark','warm','minimal','gold','ocean','forest'];
+    themes.forEach(t => postCard.classList.remove('theme-' + t));
+    postCard.classList.add('theme-' + el.dataset.theme);
+  }
+
+  function setFont(el) {
+    document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    currentFont = el.dataset.font;
+    postText.style.fontFamily = currentFont;
+    const isSerif = currentFont.includes('Cormorant') || currentFont.includes('Playfair') || currentFont.includes('Baskerville');
+    postText.style.fontStyle = isSerif ? 'italic' : 'normal';
+  }
+
+  function setSize(val) {
+    currentSize = parseInt(val);
+    postText.style.fontSize = currentSize + 'px';
+    document.getElementById('size-label').textContent = val + 'px';
+  }
+
+  function downloadPost() {
+    const btn = document.querySelector('.btn-download');
+    btn.textContent = '⏳ Gerando...';
+    btn.disabled = true;
+
+    const card = document.getElementById('post-card');
+    const originalBorderRadius = card.style.borderRadius;
+    card.style.borderRadius = '0';
+
+    html2canvas(card, {
+      scale: 2.7,
+      useCORS: true,
+      backgroundColor: null,
+      logging: false
+    }).then(canvas => {
+      card.style.borderRadius = originalBorderRadius;
+      const link = document.createElement('a');
+      link.download = 'post-instagram.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      btn.textContent = '⬇ Baixar Imagem (PNG)';
+      btn.disabled = false;
+    }).catch(() => {
+      card.style.borderRadius = originalBorderRadius;
+      btn.textContent = '⬇ Baixar Imagem (PNG)';
+      btn.disabled = false;
+    });
+  }
+</script>
+</body>
+</html>
